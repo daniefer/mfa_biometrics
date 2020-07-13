@@ -7,7 +7,8 @@
         public string[] Exts { get; set; }
         public Coordinates Loc { get; set; }
         public string TxAuthSimple { get; set; }
-
-        // TODO: Add ArrayBuffer values
+        public string TxAuthGeneric { get; set; }
+        public string Uvi { get; set; }
+        public float[] Uvm { get; set; }
     }
 }

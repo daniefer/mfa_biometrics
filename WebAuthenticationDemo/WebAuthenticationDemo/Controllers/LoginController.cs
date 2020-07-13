@@ -38,14 +38,14 @@ namespace WebAuthenticationDemo.Controllers
         }
 
         [HttpPost("authenticate")]
-        public async Task<AuthenticationResult> Authenticate(AuthenticationPrompt credentials)
+        public async Task<AuthenticationResult> Authenticate(WebAuthenticationSignInRequest credentials)
         {
             return await _credentialManager.Authenticate(credentials);
         }
 
         [HttpPost("register/authentication")]
         [Authorize("default")]
-        public async Task RegisterAuthentication(RegisterAuthentication registerAuthentication)
+        public async Task RegisterAuthentication(WebAuthenticationRegistrationRequest registerAuthentication)
         {
             await _credentialManager.RegisterAuthentication(registerAuthentication, User.Identity);
         }

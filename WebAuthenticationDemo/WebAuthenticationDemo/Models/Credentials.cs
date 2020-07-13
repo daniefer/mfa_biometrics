@@ -5,11 +5,11 @@ namespace WebAuthenticationDemo
 {
     public class Credentials
     {
+        public int Id { get; internal set; }
         public string Username { get; set; }
         public string Password { get; set; }
         public string Name { get; set; }
-        public ICollection<RegisterAuthentication> RegisterAuthentications { get; } = new HashSet<RegisterAuthentication>();
         public string Email { get; set; }
-        public int Id { get; internal set; }
+        internal ICollection<RegisterAuthenticationAttestation> Attestations { get; } = new HashSet<RegisterAuthenticationAttestation>();
     }
 }

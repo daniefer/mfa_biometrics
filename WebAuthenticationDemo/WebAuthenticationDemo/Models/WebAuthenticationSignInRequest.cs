@@ -1,11 +1,10 @@
 ﻿namespace WebAuthenticationDemo.Controllers
 {
-    public class AuthenticationPrompt
+    public class WebAuthenticationSignInRequest
     {
         public string Id { get; set; }
         public string Type { get; set; }
         public Extensions Extensions { get; set; }
-        public ClientData ClientData { get; set; }
         public string clientDataJSON { get; set; }
         public string UserHandle { get; set; }
         public string Signature { get; set; }

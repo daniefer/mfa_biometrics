@@ -33,29 +33,29 @@ export class AppComponent {
 
   async signInClick() {
     try {
-      const challenge = await this.http.get<{ token: string }>("http://localhost:5000/api/login/challenge").toPromise()
+      const challenge = await this.http.get<{ token: string, supportedAlg: number[] }>("http://localhost:5000/api/login/challenge").toPromise()
       const cred = await navigator.credentials.get({
         publicKey: {
           userVerification: "required",
           timeout: DEFAULT_TIMEOUT,
-          challenge: this.stringToArrayBuffer(challenge.token),
+          challenge: this.stringToArrayBuffer(encodeURIComponent(challenge.token)),
           allowCredentials: this.mapCredentialDescriptors(),
           extensions: this.getExtensions(),
           rpId: window.location.hostname
         },
       }) as PublicKeyCredential;
       this.signin = this.mapPublicKeyCredential(cred);
+      this.signInResult = await this.http.post<LoginResult>("http://localhost:5000/api/login/authenticate", this.signin).toPromise();
     }
     catch (err) {
       this.signin = this.mapError(err);
     }
-    this.signInResult = await this.http.post<LoginResult>("http://localhost:5000/api/login/authenticate", this.signin).toPromise();
     console.table(this.signin);
   }
 
   async registerClick() {
     try {
-      const challenge = await this.http.get<{ token: string }>("http://localhost:5000/api/login/challenge").toPromise()
+      const challenge = await this.http.get<{ token: string, supportedAlg: number[] }>("http://localhost:5000/api/login/challenge").toPromise()
       const cred = await navigator.credentials.create({
         publicKey: this.getCreatePublicKey(
           {
@@ -64,7 +64,8 @@ export class AppComponent {
             name: this.loginResult.name
           },
           // [-7, -257],
-          [-7, -257, -259],
+          // [-7, -257, -259],
+          challenge.supportedAlg,
           challenge.token
         ),
       }) as PublicKeyCredential;
@@ -103,14 +104,14 @@ export class AppComponent {
         icon: "https://gravatar.com/avatar/jdoe.png"
       },
       pubKeyCredParams: algorithms.map(alg => ({ type: "public-key", alg })),
-      challenge: this.stringToArrayBuffer(challenge),
+      challenge: this.stringToArrayBuffer(encodeURIComponent(challenge)),
       authenticatorSelection: {
         //Select authenticators that support username-less flows
         requireResidentKey: true,
         //Select authenticators that have a second factor (e.g. PIN, Bio)
         userVerification: "required",
         //Selects between bound or detachable authenticators
-        authenticatorAttachment: "platform",
+        authenticatorAttachment: "cross-platform",
       },
       attestation: "none",
       excludeCredentials: undefined, // this.mapCredentialDescriptors(),
@@ -120,22 +121,10 @@ export class AppComponent {
   }
 
   getExtensions(): AuthenticationExtensionsClientInputs {
-    // return undefined;
-    return {
-      // appid: "my app", // legacy extension
-      authnSel: [
-        this.stringToArrayBuffer("2a77c164-5469-4801-a3e4-8894776368c2")
-      ],
-      exts: true,
-      loc: true,
-      txAuthGeneric: {
-        content: this.stringToArrayBuffer("hi there bob"),
-        contentType: "application/json"
-      },
-      txAuthSimple: "",
-      uvi: true,
-      uvm: true
-    }
+    return undefined;
+    // return {
+    //   appid: "my app", // legacy extension
+    // }
   }
 
   mapCredentialDescriptors(): PublicKeyCredentialDescriptor[] {
@@ -144,7 +133,7 @@ export class AppComponent {
     return knownIds.map(id => ({
       id: this.base64decode(id),
       type: "public-key",
-      transports: ["internal"], // ("ble" | "internal" | "nfc" | "usb")[]
+      transports: ["internal", "ble", "nfc", "usb"], // ("ble" | "internal" | "nfc" | "usb")[]
     }));
   }
 
@@ -159,6 +148,7 @@ export class AppComponent {
     const ext = this.tryGetExtensions(cred);
     const clientData = JSON.parse(this.arrayBufferToString(cred.response.clientDataJSON) || "null");
     const assertion = cred.response as AuthenticatorAssertionResponse;
+    const attestation = cred.response as AuthenticatorAttestationResponse;
 
     return {
       jsType: Object.getPrototypeOf(cred).name,
@@ -169,21 +159,22 @@ export class AppComponent {
         authnSel: ext.authnSel,
         exts: (ext.exts || []).map(x => x),
         loc: { ...(ext.loc || {}) },
-        txAuthGeneric: ext.txAuthGeneric,
         txAuthSimple: ext.txAuthSimple,
-        uvi: ext.uvi,
+        txAuthGeneric: this.base64encode(ext.txAuthGeneric),
+        uvi: this.base64encode(ext.uvi),
         uvm: ext.uvm,
       },
       clientData: {
         ...clientData,
-        rawChallenge: clientData.challenge,
         challenge: atob(clientData.challenge)
       },
       clientDataJSON: this.arrayBufferToString(cred.response.clientDataJSON),
+
       signature: this.base64encode(assertion.signature),
       userHandle: this.base64encode(assertion.userHandle),
-      base64CborAttestation: this.base64encode((cred.response as AuthenticatorAttestationResponse).attestationObject),
-      base64CborAssertion: this.base64encode((cred.response as AuthenticatorAssertionResponse).authenticatorData),
+      base64CborAssertion: this.base64encode(assertion.authenticatorData),
+
+      base64CborAttestation: this.base64encode(attestation.attestationObject),
     };
   }
 

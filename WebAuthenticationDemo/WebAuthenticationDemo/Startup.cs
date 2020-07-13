@@ -17,6 +17,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
+using WebAuthenticationDemo.Business;
+using WebAuthenticationDemo.Business.Algorithums;
 
 namespace WebAuthenticationDemo
 {
@@ -34,6 +36,10 @@ namespace WebAuthenticationDemo
         {
             IdentityModelEventSource.ShowPII = true;
             services.AddSingleton<CredentialManager>();
+            services.AddTransient<AttestationParser>();
+            services.AddTransient<AuthDataParser>();
+            services.AddTransient<CredentialPublicKeyParser>();
+            services.AddTransient<PublicKeyFactory>();
 
             services.AddControllers();
             services.AddAuthorization(config =>
