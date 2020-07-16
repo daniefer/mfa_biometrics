@@ -1,6 +1,8 @@
 # mfa_biometrics
 Demo of Web Authentication API with .net core
 
+Overview: https://auth0.com/blog/web-authentication-webauthn-overview-demo-tool/#:~:text=What%20is%20WebAuthn,-WebAuthn%2C%20otherwise%20known&text=In%20summary%2C%20Web%20Authentication%20is,based%20on%20public%20key%20cryptography.
+
 Notes:
 1. to run the hostname must either be running under localhost or https.
 1. Not a valid way to authenticate if the user shares a login on the trusted device
