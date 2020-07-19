@@ -20,4 +20,4 @@ TODO:
 1. clean up parsing
 1. verify rest of `AuthenticatorAssertionResponse.authenticatorData` on sign in
 1. Add a database
-
+1. Use WebAuthn packages if possible
